@@ -1,1 +1,2 @@
 # url-shortener
+This URL shortener works by mapping a long URL to a unique, shorter identifier stored in a database. When a user accesses the short URL, the application looks up the corresponding long URL in the database and redirects the user. It also tracks how many times each shortened link has been clicked, providing basic analytics. The system relies on PHP for logic and MySQL for data storage, running locally via XAMPP.
