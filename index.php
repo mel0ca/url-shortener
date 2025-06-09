@@ -1,28 +1,91 @@
 <?php
-require "../config.php"; // Required for database connection ($conn)
+require "config.php";
 
-if (isset($_GET['id'])) {
-    $id = $_GET['id'];
+$select = $conn->query('SELECT * FROM urls');
+$select->execute();
+$rows = $select->fetchAll(PDO::FETCH_OBJ);
 
-    $select = $conn->prepare("SELECT * FROM urls WHERE id = :id");
-    $select->execute([':id' => $id]);
-    $data = $select->fetch(PDO::FETCH_OBJ);
-
-    if ($data) {
-        $clicks = $data->clicks + 1;
-
-        $update = $conn->prepare("UPDATE urls SET clicks = :clicks WHERE id = :id");
-        $update->execute([
-            ':clicks' => $clicks,
-            ':id' => $id
-        ]);
-
-        header("Location: " . $data->url);
-        exit();
+if(isset($_POST['submit'])){
+    if($_POST['url'] == ''){
+        echo "the input is empty";
     } else {
-        echo "URL not found.";
+        $url = $_POST['url'];
+        $insert = $conn->prepare("INSERT INTO urls (url) VALUES (:url)");
+        $insert->execute([
+           ':url' => $url
+        ]);
+        header("Location: index.php");
+        exit();
     }
-} else {
-    echo "Invalid request.";
 }
 ?>
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" xintegrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+        <style>
+            body {overflow: hidden;}
+            
+            .margin {
+                margin-top: 200px
+            }
+        </style>
+    </head>
+    <body>
+        
+        <div class="container">
+            <div class="row gx-4 gx-lg-5 justify-content-center">
+                <div class="col-md-10 col-lg-8 col-xl-7">
+                    <form class="card p-2 margin" method ="POST" action="index.php">
+                        <div class="input-group">
+                        <input type="text" name="url" class="form-control" placeholder="your url">
+                        <div class="input-group-append">
+                            <button type="submit" name="submit" class="btn btn-success">Shorten</button>
+                        </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="container" id ="refresh">
+            <div class="row gx-4 gx-lg-5 justify-content-center">
+                <div class="col-md-10 col-lg-8 col-xl-7">
+                    <table class="table mt-4">
+                        <thead>
+                            <tr>
+                            <th scope="col">long url</th>
+                            <th scope="col">short url</th>
+                            <th scope="col">clicks</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach($rows as $row) : ?>
+                            <tr>
+                            <td><?php echo $row->url; ?></td>
+                            <td><a href="http://localhost/short-urls/u?id=<?php echo $row->id; ?>" target="_blank">http://localhost/short-urls/<?php echo $row->id; ?><a></td>
+                            <td><?php echo $row->clicks; ?></td>
+                            <td></td>
+                            </tr>
+                           <?php endforeach; ?>  
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> 
+        <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js" ></script>
+        <script>
+            $(document).ready(function() {
+                $("#refresh").click(function(){
+                    setInterval(function(){
+                        $("body").load('index.php')
+                    }, 5000);
+                });
+            });
+        </script>
+    </body>
+</html>
